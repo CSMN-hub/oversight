@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oversight - Memecoin Intelligence Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        .gradient-card {
+            background: linear-gradient(145deg, #1e293b, #334155);
+            border: 1px solid #475569;
+        }
+        .news-item {
+            transition: all 0.3s ease;
+        }
+        .news-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        .coin-card {
+            transition: all 0.3s ease;
+        }
+        .coin-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .pulse-green {
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white">
+    <!-- Header -->
+    <header class="bg-slate-900 border-b border-slate-700 sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-eye text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                            Oversight
+                        </h1>
+                        <p class="text-sm text-slate-400">Memecoin Intelligence Dashboard</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="refreshBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Refresh Data</span>
+                    </button>
+                    <button id="aiChatBtn" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2">
+                        <i class="fas fa-robot"></i>
+                        <span>Ask Claude</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8">
+        <!-- Market Overview -->
+        <section class="mb-8">
+            <div class="gradient-card rounded-xl p-6">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <i class="fas fa-chart-line mr-3 text-green-400"></i>
+                    Market Overview
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-green-400">6/6</div>
+                        <div class="text-sm text-slate-400">Coins Tracked</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-blue-400">Live</div>
+                        <div class="text-sm text-slate-400">Data Status</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-purple-400">24/7</div>
+                        <div class="text-sm text-slate-400">Monitoring</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Coin Grid -->
+        <section class="mb-8">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <i class="fas fa-coins mr-3 text-yellow-400"></i>
+                Tracked Coins
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- SPX6900 Card -->
+                <div class="coin-card gradient-card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
+                                <span class="font-bold text-white">SPX</span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold">SPX6900</h3>
+                                <p class="text-sm text-slate-400">SPX</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-green-400">$0.1234</div>
+                            <div class="text-sm text-green-400">+12.5%</div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Sentiment:</span>
+                            <span class="text-green-400 font-semibold">Bullish</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Social Volume:</span>
+                            <span class="text-blue-400 font-semibold">High</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GIGA Card -->
+                <div class="coin-card gradient-card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+                                <span class="font-bold text-white">GIG</span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold">GIGA</h3>
+                                <p class="text-sm text-slate-400">GIGA</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-green-400">$0.0567</div>
+                            <div class="text-sm text-green-400">+8.3%</div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Sentiment:</span>
+                            <span class="text-green-400 font-semibold">Positive</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Social Volume:</span>
+                            <span class="text-yellow-400 font-semibold">Medium</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MOG Card -->
+                <div class="coin-card gradient-card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                                <span class="font-bold text-white">MOG</span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold">MOG</h3>
+                                <p class="text-sm text-slate-400">MOG</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-red-400">$0.0089</div>
+                            <div class="text-sm text-red-400">-3.2%</div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Sentiment:</span>
+                            <span class="text-yellow-400 font-semibold">Neutral</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Social Volume:</span>
+                            <span class="text-yellow-400 font-semibold">Medium</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PUMP Card -->
+                <div class="coin-card gradient-card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
+                                <span class="font-bold text-white">PMP</span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold">PUMP</h3>
+                                <p class="text-sm text-slate-400">PUMP</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-green-400">$0.2145</div>
+                            <div class="text-sm text-green-400">+15.7%</div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Sentiment:</span>
+                            <span class="text-green-400 font-semibold">Very Bullish</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Social Volume:</span>
+                            <span class="text-green-400 font-semibold">Very High</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DOGE Card -->
+                <div class="coin-card gradient-card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center">
+                                <span class="font-bold text-white">DOGE</span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold">DOGE</h3>
+                                <p class="text-sm text-slate-400">DOGE</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-green-400">$0.3456</div>
+                            <div class="text-sm text-green-400">+5.4%</div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Sentiment:</span>
+                            <span class="text-green-400 font-semibold">Bullish</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Social Volume:</span>
+                            <span class="text-blue-400 font-semibold">High</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PENGU Card -->
+                <div class="coin-card gradient-card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                                <span class="font-bold text-white">PNG</span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold">PENGU</h3>
+                                <p class="text-sm text-slate-400">PENGU</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-green-400">$0.0234</div>
+                            <div class="text-sm text-green-400">+22.1%</div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Sentiment:</span>
+                            <span class="text-green-400 font-semibold">Very Bullish</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Social Volume:</span>
+                            <span class="text-green-400 font-semibold">Very High</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- News Feed -->
+        <section class="mb-8">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <i class="fas fa-newspaper mr-3 text-blue-400"></i>
+                Latest News & Updates
+            </h2>
+            <div class="space-y-4">
+                <!-- SPX6900 News -->
+                <div class="news-item gradient-card rounded-xl p-6">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                                <span class="text-xs font-bold text-white">SPX</span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg">SPX6900 Breaks New ATH as S&P 500 Correlation Strengthens</h3>
+                                <div class="flex items-center space-x-4 text-sm text-slate-400 mt-1">
+                                    <span><i class="fas fa-clock mr-1"></i>2 hours ago</span>
+                                    <a href="https://coindesk.com" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors">
+                                        <i class="fas fa-external-link-alt mr-1"></i>CoinDesk
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-slate-300 mb-3">
+                        SPX6900 has surged to new all-time highs following increased correlation discussions with traditional S&P 500 movements. Community sentiment remains extremely bullish as trading volume increases 400%.
+                    </p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="bg-green-600 text-green-100 px-2 py-1 rounded text-xs">Bullish</span>
+                            <span class="bg-blue-600 text-blue-100 px-2 py-1 rounded text-xs">High Volume</span>
+                        </div>
+                        <a href="https://coindesk.com/markets/spx6900-ath-correlation" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors text-sm">
+                            Read Full Article <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- GIGA News -->
+                <div class="news-item gradient-card rounded-xl p-6">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                                <span class="text-xs font-bold text-white">GIG</span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg">GIGA Chad Meme Token Gains Traction on Social Media</h3>
+                                <div class="flex items-center space-x-4 text-sm text-slate-400 mt-1">
+                                    <span><i class="fas fa-clock mr-1"></i>4 hours ago</span>
+                                    <a href="https://decrypt.co" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors">
+                                        <i class="fas fa-external-link-alt mr-1"></i>Decrypt
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-slate-300 mb-3">
+                        The GIGA token continues its viral spread across Twitter and TikTok, with major influencers beginning to mention the project. Social sentiment analysis shows 78% positive mentions.
+                    </p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="bg-green-600 text-green-100 px-2 py-1 rounded text-xs">Positive</span>
+                            <span class="bg-purple-600 text-purple-100 px-2 py-1 rounded text-xs">Viral</span>
+                        </div>
+                        <a href="https://decrypt.co/articles/giga-token-social-media" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors text-sm">
+                            Read Full Article <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- PUMP News -->
+                <div class="news-item gradient-card rounded-xl p-6">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                                <span class="text-xs font-bold text-white">PMP</span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg">PUMP Token Integration with Major DeFi Protocols Announced</h3>
+                                <div class="flex items-center space-x-4 text-sm text-slate-400 mt-1">
+                                    <span><i class="fas fa-clock mr-1"></i>6 hours ago</span>
+                                    <a href="https://theblock.co" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors">
+                                        <i class="fas fa-external-link-alt mr-1"></i>The Block
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-slate-300 mb-3">
+                        PUMP token announces partnerships with leading DeFi protocols, enabling yield farming and liquidity provision opportunities. Community excitement peaks as utility expands beyond meme status.
+                    </p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="bg-green-600 text-green-100 px-2 py-1 rounded text-xs">Very Bullish</span>
+                            <span class="bg-orange-600 text-orange-100 px-2 py-1 rounded text-xs">Partnership</span>
+                        </div>
+                        <a href="https://theblock.co/post/pump-token-defi-integration" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors text-sm">
+                            Read Full Article <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- PENGU News -->
+                <div class="news-item gradient-card rounded-xl p-6">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                <span class="text-xs font-bold text-white">PNG</span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg">PENGU Token Explodes 500% Following Penguin NFT Collection Launch</h3>
+                                <div class="flex items-center space-x-4 text-sm text-slate-400 mt-1">
+                                    <span><i class="fas fa-clock mr-1"></i>1 hour ago</span>
+                                    <a href="https://cointelegraph.com" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors">
+                                        <i class="fas fa-external-link-alt mr-1"></i>Cointelegraph
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-slate-300 mb-3">
+                        PENGU experiences massive price surge after the launch of companion NFT collection. Social media buzz reaches fever pitch with #PENGU trending globally on Twitter.
+                    </p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="bg-green-600 text-green-100 px-2 py-1 rounded text-xs">Explosive</span>
+                            <span class="bg-pink-600 text-pink-100 px-2 py-1 rounded text-xs">NFT Launch</span>
+                        </div>
+                        <a href="https://cointelegraph.com/news/pengu-token-surge-nft-collection" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors text-sm">
+                            Read Full Article <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- DOGE News -->
+                <div class="news-item gradient-card rounded-xl p-6">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                                <span class="text-xs font-bold text-white">DOGE</span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg">Dogecoin Shows Strong Support at $0.30 as Whale Activity Increases</h3>
+                                <div class="flex items-center space-x-4 text-sm text-slate-400 mt-1">
+                                    <span><i class="fas fa-clock mr-1"></i>3 hours ago</span>
+                                    <a href="https://coinmarketcap.com" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors">
+                                        <i class="fas fa-external-link-alt mr-1"></i>CoinMarketCap
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-slate-300 mb-3">
+                        DOGE maintains strong technical support as large wallet addresses accumulate. On-chain analysis reveals increased whale activity with significant buy orders above $0.30 level.
+                    </p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="bg-green-600 text-green-100 px-2 py-1 rounded text-xs">Strong Support</span>
+                            <span class="bg-blue-600 text-blue-100 px-2 py-1 rounded text-xs">Whale Activity</span>
+                        </div>
+                        <a href="https://coinmarketcap.com/currencies/dogecoin/news/" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors text-sm">
+                            Read Full Article <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Social Sentiment Chart -->
+        <section class="mb-8">
+            <div class="gradient-card rounded-xl p-6">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <i class="fas fa-chart-bar mr-3 text-purple-400"></i>
+                    Social Sentiment Comparison
+                </h2>
+                <div class="chart-container">
+                    <canvas id="sentimentChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- AI Chat Modal -->
+    <div id="aiChatModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-slate-800 rounded-xl max-w-2xl w-full max-h-96 overflow-hidden">
+                <div class="p-6 border-b border-slate-700 flex items-center justify-between">
+                    <h3 class="text-lg font-semibold flex items-center">
+                        <i class="fas fa-robot mr-2 text-purple-400"></i>
+                        Ask Claude About Your Coins
+                    </h3>
+                    <button id="closeChatBtn" class="text-slate-400 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4 mb-4">
+                        <div class="bg-slate-700 rounded-lg p-3">
+                            <p class="text-sm text-slate-300">Try asking:</p>
+                            <ul class="text-sm text-blue-400 mt-2 space-y-1">
+                                <li>• "What's driving PENGU's price surge today?"</li>
+                                <li>• "Compare sentiment between SPX6900 and PUMP"</li>
+                                <li>• "Which memecoin has the most social buzz right now?"</li>
+                                <li>• "Show me recent news about GIGA token"</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <input type="text" placeholder="Ask about your coins..." class="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none">
+                        <button class="bg-purple-600 hover:bg-purple-700 px-6 py-2 rounded-lg transition-colors duration-200">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-2">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Connected to LunarCrush MCP for real-time social data
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize sentiment chart
+        const ctx = document.getElementById('sentimentChart').getContext('2d');
+        const sentimentChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['SPX6900', 'GIGA', 'MOG', 'PUMP', 'DOGE', 'PENGU'],
+                datasets: [{
+                    label: 'Sentiment Score',
+                    data: [85, 72, 45, 92, 78, 95],
+                    backgroundColor: [
+                        'rgba(249, 115, 22, 0.8)',
+                        'rgba(147, 51, 234, 0.8)',
+                        'rgba(34, 197, 94, 0.8)',
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(234, 179, 8, 0.8)',
+                        'rgba(59, 130, 246, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(249, 115, 22, 1)',
+                        'rgba(147, 51, 234, 1)',
+                        'rgba(34, 197, 94, 1)',
+                        'rgba(239, 68, 68, 1)',
+                        'rgba(234, 179, 8, 1)',
+                        'rgba(59, 130, 246, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#e2e8f0'
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            color: '#94a3b8'
+                        },
+                        grid: {
+                            color: '#475569'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#94a3b8'
+                        },
+                        grid: {
+                            color: '#475569'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Modal functionality
+        const aiChatBtn = document.getElementById('aiChatBtn');
+        const aiChatModal = document.getElementById('aiChatModal');
+        const closeChatBtn = document.getElementById('closeChatBtn');
+
+        aiChatBtn.addEventListener('click', () => {
+            aiChatModal.classList.remove('hidden');
+        });
+
+        closeChatBtn.addEventListener('click', () => {
+            aiChatModal.classList.add('hidden');
+        });
+
+        aiChatModal.addEventListener('click', (e) => {
+            if (e.target === aiChatModal) {
+                aiChatModal.classList.add('hidden');
+            }
+        });
+
+        // Refresh functionality
+        const refreshBtn = document.getElementById('refreshBtn');
+        refreshBtn.addEventListener('click', () => {
+            // Add loading state
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Refreshing...</span>';
+            
+            // Simulate data refresh
+            setTimeout(() => {
+                refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> <span>Refresh Data</span>';
+                
+                // Add a subtle flash effect to indicate refresh
+                document.querySelectorAll('.coin-card, .news-item').forEach(card => {
+                    card.style.opacity = '0.7';
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                    }, 200);
+                });
+            }, 2000);
+        });
+
+        // Add pulse effect to live indicators
+        setInterval(() => {
+            const liveIndicators = document.querySelectorAll('.pulse-green');
+            liveIndicators.forEach(indicator => {
+                indicator.classList.toggle('pulse-green');
+                setTimeout(() => {
+                    indicator.classList.toggle('pulse-green');
+                }, 1000);
+            });
+        }, 3000);
+    </script>
+</body>
+</html>
