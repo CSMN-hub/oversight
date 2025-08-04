@@ -1,885 +1,178 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oversight - Memecoin Intelligence Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .card-hover {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .card-hover:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        }
-        .loading-spinner {
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #3498db;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            margin-right: 10px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .pulse-green {
-            animation: pulse-green 2s infinite;
-        }
-        @keyframes pulse-green {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-    </style>
-</head>
-<body class="bg-gray-900 text-white min-h-screen">
+const fetch = require('node-fetch');
 
-    <!-- 
-    NETLIFY SERVERLESS FUNCTION CODE
-    Create file: netlify/functions/crypto-data.js
+exports.handler = async (event, context) => {
+    const headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+    };
     
-    const fetch = require('node-fetch');
+    if (event.httpMethod === 'OPTIONS') {
+        return { statusCode: 200, headers, body: '' };
+    }
     
-    exports.handler = async (event, context) => {
-        const headers = {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
-        };
+    try {
+        const { coin } = JSON.parse(event.body || '{}');
         
-        if (event.httpMethod === 'OPTIONS') {
-            return { statusCode: 200, headers, body: '' };
+        if (!coin) {
+            return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({ error: 'Coin parameter is required' })
+            };
+        }
+
+        console.log(`Fetching data for ${coin}...`);
+
+        // Try Claude AI Analysis with LunarCrush context
+        const prompt = `Analyze the memecoin ${coin} and provide current market intelligence.
+
+Please provide a JSON response with realistic current data for ${coin}:
+
+1. Current price estimate based on recent market trends
+2. Social sentiment score (0-100) based on community activity  
+3. Social volume estimate
+4. 24h price change estimate
+5. Generate 2 realistic social media posts/news items
+
+Context: ${coin} is a memecoin with active community. Provide realistic estimates based on current market conditions.
+
+Return ONLY valid JSON in this exact format:
+{
+    "coin": "${coin}",
+    "price": "0.0000",
+    "sentiment": "75.5", 
+    "socialVolume": 15000,
+    "change24h": "-2.34",
+    "dataSource": "Claude AI",
+    "topPosts": [
+        {
+            "title": "Realistic post title about ${coin}",
+            "source": "Twitter/X",
+            "time": "3 hours ago",
+            "url": "#",
+            "engagement": 850,
+            "sentiment": "bullish"
+        },
+        {
+            "title": "Another realistic post title",
+            "source": "Reddit", 
+            "time": "6 hours ago",
+            "url": "#",
+            "engagement": 420,
+            "sentiment": "neutral"
+        }
+    ]
+}`;
+
+        const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.CLAUDE_API_KEY}`,
+                'anthropic-version': '2023-06-01'
+            },
+            body: JSON.stringify({
+                model: 'claude-3-5-sonnet-20241022',
+                max_tokens: 1500,
+                messages: [{
+                    role: 'user',
+                    content: prompt
+                }]
+            })
+        });
+        
+        if (!claudeResponse.ok) {
+            const errorData = await claudeResponse.json();
+            throw new Error(`Claude API error: ${errorData.error?.message || claudeResponse.statusText}`);
         }
         
-        try {
-            const { coin } = JSON.parse(event.body || '{}');
-            let finalData = {
-                price: null,
-                sentiment: null,
-                socialVolume: null,
-                change24h: null,
-                news: []
-            };
-            
-            // Step 1: Try LunarCrush MCP for sentiment/social data
-            try {
-                const mcpResponse = await fetch('https://api.anthropic.com/v1/messages', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${process.env.CLAUDE_API_KEY}`,
-                        'anthropic-version': '2023-06-01'
-                    },
-                    body: JSON.stringify({
-                        model: 'claude-3-sonnet-20240229',
-                        max_tokens: 1000,
-                        messages: [{
-                            role: 'user',
-                            content: `Get ${coin} data from LunarCrush MCP including price, sentiment, social volume, and recent news. Return as JSON with exact numbers.`
-                        }]
-                    })
-                });
-                
-                const mcpData = await mcpResponse.json();
-                // Parse MCP response for sentiment/social data
-                if (mcpData.content && mcpData.content[0] && mcpData.content[0].text) {
-                    const text = mcpData.content[0].text;
-                    // Extract structured data from Claude's response
-                    finalData.sentiment = extractSentiment(text);
-                    finalData.socialVolume = extractSocialVolume(text);
-                    finalData.news = extractNews(text);
-                    finalData.price = extractPrice(text);
-                }
-            } catch (mcpError) {
-                console.log('MCP Error:', mcpError);
+        const claudeData = await claudeResponse.json();
+        const content = claudeData.content?.[0]?.text || '';
+        
+        // Parse JSON from Claude response
+        let jsonMatch = content.match(/\{[\s\S]*\}/);
+        
+        if (!jsonMatch) {
+            jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) || content.match(/```\s*([\s\S]*?)\s*```/);
+            if (jsonMatch) {
+                jsonMatch = [jsonMatch[1]];
             }
-            
-            // Step 2: Fallback to web search for price if not available
-            if (!finalData.price) {
-                try {
-                    const priceResponse = await fetch('https://api.anthropic.com/v1/messages', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${process.env.CLAUDE_API_KEY}`,
-                            'anthropic-version': '2023-06-01'
-                        },
-                        body: JSON.stringify({
-                            model: 'claude-3-sonnet-20240229',
-                            max_tokens: 500,
-                            messages: [{
-                                role: 'user',
-                                content: `Search web for current ${coin} price in USD today. Return just the price number and 24h change percentage.`
-                            }]
-                        })
-                    });
-                    
-                    const priceData = await priceResponse.json();
-                    if (priceData.content && priceData.content[0]) {
-                        const priceText = priceData.content[0].text;
-                        finalData.price = extractPriceFromSearch(priceText);
-                        finalData.change24h = extractChangeFromSearch(priceText);
-                    }
-                } catch (searchError) {
-                    console.log('Search Error:', searchError);
-                }
-            }
-            
-            // Step 3: Use fallback data if still missing
-            if (!finalData.price) {
-                const fallbackPrices = {
-                    'SPX6900': '1.61',
-                    'DOGE': '0.199',
-                    'MOG': '0.00000118',
-                    'GIGA': '0.01592',
-                    'PENGU': '0.03404',
-                    'PUMP': '0.0001'
-                };
-                finalData.price = fallbackPrices[coin] || '0.001';
-                finalData.change24h = ((Math.random() - 0.5) * 20).toFixed(2);
-            }
-            
-            if (!finalData.sentiment) {
-                finalData.sentiment = (Math.random() * 100).toFixed(1);
-            }
-            
-            if (!finalData.socialVolume) {
-                finalData.socialVolume = Math.floor(Math.random() * 10000);
-            }
-            
-            if (finalData.news.length === 0) {
-                finalData.news = [{
-                    title: `${coin} community remains active with growing sentiment`,
-                    source: 'Crypto Intelligence',
-                    time: '1 hour ago',
-                    url: 'https://example.com'
-                }];
-            }
-            
+        }
+        
+        if (jsonMatch) {
+            const parsedData = JSON.parse(jsonMatch[0]);
+            console.log(`✅ Claude provided data for ${coin}`);
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify(finalData)
-            };
-            
-        } catch (error) {
-            return {
-                statusCode: 500,
-                headers,
-                body: JSON.stringify({ error: error.message })
+                body: JSON.stringify({
+                    ...parsedData,
+                    dataSource: 'Claude AI',
+                    lastUpdated: new Date().toISOString()
+                })
             };
         }
+        
+        throw new Error('No valid JSON found in Claude response');
+        
+    } catch (error) {
+        console.error('Function error:', error);
+        
+        // Fallback to realistic mock data
+        const { coin } = JSON.parse(event.body || '{}');
+        const mockData = generateRealisticMockData(coin || 'BTC');
+        
+        return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({
+                ...mockData,
+                isDemo: true,
+                dataSource: 'Demo Data',
+                error: 'Using demo data - API temporarily unavailable'
+            })
+        };
+    }
+};
+
+function generateRealisticMockData(coin) {
+    const coinData = {
+        'SPX6900': { price: 1.61, sentiment: 78, volume: 25000, change: 8.97 },
+        'DOGE': { price: 0.199, sentiment: 65, volume: 45000, change: 0.60 },
+        'MOG': { price: 0.00000118, sentiment: 82, volume: 18000, change: 6.28 },
+        'GIGA': { price: 0.01592, sentiment: 75, volume: 12000, change: 8.82 },
+        'PENGU': { price: 0.03404, sentiment: 70, volume: 22000, change: 4.2 },
+        'PUMP': { price: 0.0025, sentiment: 68, volume: 15000, change: -2.1 }
     };
     
-    // Helper functions
-    function extractSentiment(text) {
-        const sentimentMatch = text.match(/sentiment[:\s]*(\d+\.?\d*)/i);
-        return sentimentMatch ? sentimentMatch[1] : null;
-    }
+    const data = coinData[coin] || { price: 1, sentiment: 60, volume: 10000, change: 0 };
     
-    function extractSocialVolume(text) {
-        const volumeMatch = text.match(/volume[:\s]*(\d+)/i);
-        return volumeMatch ? parseInt(volumeMatch[1]) : null;
-    }
-    
-    function extractPrice(text) {
-        const priceMatch = text.match(/price[:\s]*\$?(\d+\.?\d*)/i);
-        return priceMatch ? priceMatch[1] : null;
-    }
-    
-    function extractNews(text) {
-        // Parse news from Claude response
-        return [];
-    }
-    
-    function extractPriceFromSearch(text) {
-        const priceMatch = text.match(/\$?(\d+\.?\d*)/);
-        return priceMatch ? priceMatch[1] : null;
-    }
-    
-    function extractChangeFromSearch(text) {
-        const changeMatch = text.match(/([+-]?\d+\.?\d*)%/);
-        return changeMatch ? changeMatch[1] : null;
-    }
-    -->
-
-    <!-- Header -->
-    <nav class="gradient-bg shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <i class="fas fa-chart-line text-2xl text-white mr-3"></i>
-                    <h1 class="text-xl font-bold text-white">Oversight</h1>
-                    <span class="ml-3 text-sm text-gray-200">Memecoin Intelligence</span>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <button id="refreshAll" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">
-                        <i class="fas fa-sync-alt mr-2"></i>Refresh All
-                    </button>
-                    <button id="aiChatBtn" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors">
-                        <i class="fas fa-robot mr-2"></i>Ask Claude
-                    </button>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Dashboard -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        <!-- Coin Tracking Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <!-- SPX6900 -->
-            <div class="bg-gray-800 rounded-lg p-6 card-hover">
-                <div class="flex justify-between items-center mb-4">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mr-3">
-                            <span class="font-bold text-black text-sm">SPX</span>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold">SPX6900</h3>
-                            <p class="text-gray-400 text-sm">Memecoin Leader</p>
-                        </div>
-                    </div>
-                    <button onclick="refreshCoin('SPX6900')" class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-sm transition-colors">
-                        <i class="fas fa-sync-alt" id="spx-refresh-icon"></i>
-                    </button>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <p class="text-gray-400 text-xs mb-1">Price</p>
-                        <p class="text-2xl font-bold text-green-400" id="spx-price">$1.61</p>
-                        <p class="text-sm text-green-400" id="spx-change">+8.97%</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-400 text-xs mb-1">Sentiment</p>
-                        <p class="text-2xl font-bold text-blue-400" id="spx-sentiment">82.5%</p>
-                        <p class="text-sm text-gray-400">Social Score</p>
-                    </div>
-                </div>
-                
-                <div class="mb-4">
-                    <div class="flex justify-between mb-2">
-                        <p class="text-gray-400 text-xs">Social Volume</p>
-                        <p class="text-white text-sm" id="spx-volume">8,420</p>
-                    </div>
-                    <div class="bg-gray-700 rounded-full h-2">
-                        <div class="bg-purple-500 h-2 rounded-full transition-all duration-500" id="spx-volume-bar" style="width: 84%"></div>
-                    </div>
-                </div>
-                
-                <div id="spx-news" class="space-y-2">
-                    <div class="border-l-2 border-blue-500 pl-3 py-1">
-                        <a href="https://coinmarketcap.com/currencies/spx6900/" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm">
-                            SPX6900 approaching all-time high with strong momentum
-                        </a>
-                        <p class="text-xs text-gray-500">CoinMarketCap • 2 hours ago</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- GIGA -->
-            <div class="bg-gray-800 rounded-lg p-6 card-hover">
-                <div class="flex justify-between items-center mb-4">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center mr-3">
-                            <span class="font-bold text-white">G</span>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold">GIGA</h3>
-                            <p class="text-gray-400 text-sm">Gigachad Token</p>
-                        </div>
-                    </div>
-                    <button onclick="refreshCoin('GIGA')" class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-sm transition-colors">
-                        <i class="fas fa-sync-alt" id="giga-refresh-icon"></i>
-                    </button>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <p class="text-gray-400 text-xs mb-1">Price</p>
-                        <p class="text-2xl font-bold text-green-400" id="giga-price">$0.01592</p>
-                        <p class="text-sm text-green-400" id="giga-change">+8.82%</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-400 text-xs mb-1">Sentiment</p>
-                        <p class="text-2xl font-bold text-blue-400" id="giga-sentiment">76.3%</p>
-                        <p class="text-sm text-gray-400">Social Score</p>
-                    </div>
-                </div>
-                
-                <div class="mb-4">
-                    <div class="flex justify-between mb-2">
-                        <p class="text-gray-400 text-xs">Social Volume</p>
-                        <p class="text-white text-sm" id="giga-volume">5,280</p>
-                    </div>
-                    <div class="bg-gray-700 rounded-full h-2">
-                        <div class="bg-purple-500 h-2 rounded-full transition-all duration-500" id="giga-volume-bar" style="width: 53%"></div>
-                    </div>
-                </div>
-                
-                <div id="giga-news" class="space-y-2">
-                    <div class="border-l-2 border-blue-500 pl-3 py-1">
-                        <a href="https://www.coingecko.com/en/coins/gigachad-2" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm">
-                            GIGA shows 8.82% gains amid meme coin rally
-                        </a>
-                        <p class="text-xs text-gray-500">CoinGecko • 1 hour ago</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MOG -->
-            <div class="bg-gray-800 rounded-lg p-6 card-hover">
-                <div class="flex justify-between items-center mb-4">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-gradient-to-r from-pink-400 to-red-500 rounded-full flex items-center justify-center mr-3">
-                            <span class="font-bold text-white">M</span>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold">MOG</h3>
-                            <p class="text-gray-400 text-sm">Mog Coin</p>
-                        </div>
-                    </div>
-                    <button onclick="refreshCoin('MOG')" class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-sm transition-colors">
-                        <i class="fas fa-sync-alt" id="mog-refresh-icon"></i>
-                    </button>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <p class="text-gray-400 text-xs mb-1">Price</p>
-                        <p class="text-2xl font-bold text-green-400" id="mog-price">$0.00000118</p>
-                        <p class="text-sm text-green-400" id="mog-change">+6.28%</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-400 text-xs mb-1">Sentiment</p>
-                        <p class="text-2xl font-bold text-blue-400" id="mog-sentiment">78.1%</p>
-                        <p class="text-sm text-gray-400">Social Score</p>
-                    </div>
-                </div>
-                
-                <div class="mb-4">
-                    <div class="flex justify-between mb-2">
-                        <p class="text-gray-400 text-xs">Social Volume</p>
-                        <p class="text-white text-sm" id="mog-volume">6,850</p>
-                    </div>
-                    <div class="bg-gray-700 rounded-full h-2">
-                        <div class="bg-purple-500 h-2 rounded-full transition-all duration-500" id="mog-volume-bar" style="width: 69%"></div>
-                    </div>
-                </div>
-                
-                <div id="mog-news" class="space-y-2">
-                    <div class="border-l-2 border-blue-500 pl-3 py-1">
-                        <a href="https://coinmarketcap.com/currencies/mog-coin/" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm">
-                            MOG shows strong TikTok engagement with 78% positive sentiment
-                        </a>
-                        <p class="text-xs text-gray-500">Social Analytics • 3 hours ago</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PUMP -->
-            <div class="bg-gray-800 rounded-lg p-6 card-hover">
-                <div class="flex justify-between items-center mb-4">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full flex items-center justify-center mr-3">
-                            <span class="font-bold text-white">P</span>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold">PUMP</h3>
-                            <p class="text-gray-400 text-sm">Pump Token</p>
-                        </div>
-                    </div>
-                    <button onclick="refreshCoin('PUMP')" class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-sm transition-colors">
-                        <i class="fas fa-sync-alt" id="pump-refresh-icon"></i>
-                    </button>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <p class="text-gray-400 text-xs mb-1">Price</p>
-                        <p class="text-2xl font-bold text-green-400" id="pump-price">$0.000156</p>
-                        <p class="text-sm text-green-400" id="pump-change">+3.42%</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-400 text-xs mb-1">Sentiment</p>
-                        <p class="text-2xl font-bold text-blue-400" id="pump-sentiment">71.8%</p>
-                        <p class="text-sm text-gray-400">Social Score</p>
-                    </div>
-                </div>
-                
-                <div class="mb-4">
-                    <div class="flex justify-between mb-2">
-                        <p class="text-gray-400 text-xs">Social Volume</p>
-                        <p class="text-white text-sm" id="pump-volume">3,920</p>
-                    </div>
-                    <div class="bg-gray-700 rounded-full h-2">
-                        <div class="bg-purple-500 h-2 rounded-full transition-all duration-500" id="pump-volume-bar" style="width: 39%"></div>
-                    </div>
-                </div>
-                
-                <div id="pump-news" class="space-y-2">
-                    <div class="border-l-2 border-blue-500 pl-3 py-1">
-                        <a href="#" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm">
-                            PUMP community discusses new utility features
-                        </a>
-                        <p class="text-xs text-gray-500">Community Update • 4 hours ago</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- DOGE -->
-            <div class="bg-gray-800 rounded-lg p-6 card-hover">
-                <div class="flex justify-between items-center mb-4">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center mr-3">
-                            <span class="font-bold text-black">D</span>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold">DOGE</h3>
-                            <p class="text-gray-400 text-sm">Dogecoin</p>
-                        </div>
-                    </div>
-                    <button onclick="refreshCoin('DOGE')" class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-sm transition-colors">
-                        <i class="fas fa-sync-alt" id="doge-refresh-icon"></i>
-                    </button>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <p class="text-gray-400 text-xs mb-1">Price</p>
-                        <p class="text-2xl font-bold text-green-400" id="doge-price">$0.199</p>
-                        <p class="text-sm text-green-400" id="doge-change">+0.60%</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-400 text-xs mb-1">Sentiment</p>
-                        <p class="text-2xl font-bold text-blue-400" id="doge-sentiment">68.4%</p>
-                        <p class="text-sm text-gray-400">Social Score</p>
-                    </div>
-                </div>
-                
-                <div class="mb-4">
-                    <div class="flex justify-between mb-2">
-                        <p class="text-gray-400 text-xs">Social Volume</p>
-                        <p class="text-white text-sm" id="doge-volume">12,450</p>
-                    </div>
-                    <div class="bg-gray-700 rounded-full h-2">
-                        <div class="bg-purple-500 h-2 rounded-full transition-all duration-500" id="doge-volume-bar" style="width: 95%"></div>
-                    </div>
-                </div>
-                
-                <div id="doge-news" class="space-y-2">
-                    <div class="border-l-2 border-blue-500 pl-3 py-1">
-                        <a href="https://coinmarketcap.com/currencies/dogecoin/" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm">
-                            DOGE maintains stability with steady community engagement
-                        </a>
-                        <p class="text-xs text-gray-500">CoinMarketCap • 30 minutes ago</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PENGU -->
-            <div class="bg-gray-800 rounded-lg p-6 card-hover">
-                <div class="flex justify-between items-center mb-4">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full flex items-center justify-center mr-3">
-                            <span class="font-bold text-white">P</span>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold">PENGU</h3>
-                            <p class="text-gray-400 text-sm">Pudgy Penguins</p>
-                        </div>
-                    </div>
-                    <button onclick="refreshCoin('PENGU')" class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-sm transition-colors">
-                        <i class="fas fa-sync-alt" id="pengu-refresh-icon"></i>
-                    </button>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <p class="text-gray-400 text-xs mb-1">Price</p>
-                        <p class="text-2xl font-bold text-green-400" id="pengu-price">$0.03404</p>
-                        <p class="text-sm text-green-400" id="pengu-change">+4.2%</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-400 text-xs mb-1">Sentiment</p>
-                        <p class="text-2xl font-bold text-blue-400" id="pengu-sentiment">74.6%</p>
-                        <p class="text-sm text-gray-400">Social Score</p>
-                    </div>
-                </div>
-                
-                <div class="mb-4">
-                    <div class="flex justify-between mb-2">
-                        <p class="text-gray-400 text-xs">Social Volume</p>
-                        <p class="text-white text-sm" id="pengu-volume">7,320</p>
-                    </div>
-                    <div class="bg-gray-700 rounded-full h-2">
-                        <div class="bg-purple-500 h-2 rounded-full transition-all duration-500" id="pengu-volume-bar" style="width: 73%"></div>
-                    </div>
-                </div>
-                
-                <div id="pengu-news" class="space-y-2">
-                    <div class="border-l-2 border-blue-500 pl-3 py-1">
-                        <a href="https://www.coingecko.com/en/coins/pudgy-penguins" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm">
-                            PENGU shows positive sentiment with NFT community growth
-                        </a>
-                        <p class="text-xs text-gray-500">CoinGecko • 1 hour ago</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sentiment Comparison Chart -->
-        <div class="bg-gray-800 rounded-lg p-6 mb-8">
-            <h3 class="text-xl font-bold mb-4">Sentiment Comparison</h3>
-            <div style="height: 400px;">
-                <canvas id="sentimentChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- AI Chat Modal -->
-    <div id="aiChatModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-gray-800 rounded-lg p-6 w-full max-w-2xl">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-bold">Ask Claude About Your Coins</h3>
-                    <button onclick="closeAIChat()" class="text-gray-400 hover:text-white">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                
-                <div id="chatMessages" class="bg-gray-900 rounded-lg p-4 h-64 overflow-y-auto mb-4">
-                    <p class="text-gray-400">Hi! I can help you analyze your coin selection. Try asking:</p>
-                    <ul class="text-sm text-blue-400 mt-2">
-                        <li>• "What's the best performer today?"</li>
-                        <li>• "Compare GIGA vs MOG sentiment"</li>
-                        <li>• "Which coin has the most social buzz?"</li>
-                        <li>• "Should I be watching SPX6900?"</li>
-                    </ul>
-                </div>
-                
-                <div class="flex">
-                    <input type="text" id="chatInput" placeholder="Ask about your coins..." 
-                           class="flex-1 bg-gray-700 text-white px-4 py-2 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <button onclick="sendChatMessage()" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-r-lg transition-colors">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden z-40">
-        <div class="bg-gray-800 rounded-lg p-8 text-center">
-            <div class="loading-spinner"></div>
-            <p class="text-white">Fetching latest intelligence...</p>
-        </div>
-    </div>
-
-    <script>
-        // Configuration
-        const COINS = ['SPX6900', 'GIGA', 'MOG', 'PUMP', 'DOGE', 'PENGU'];
-        let sentimentChart = null;
-
-        // Initialize Dashboard
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeChart();
-            
-            // Set up refresh all button
-            document.getElementById('refreshAll').addEventListener('click', refreshAllCoins);
-            
-            // Set up AI chat
-            document.getElementById('aiChatBtn').addEventListener('click', openAIChat);
-            document.getElementById('chatInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') sendChatMessage();
-            });
-        });
-
-        // Initialize Sentiment Chart
-        function initializeChart() {
-            const ctx = document.getElementById('sentimentChart').getContext('2d');
-            const currentSentiments = [82.5, 76.3, 78.1, 71.8, 68.4, 74.6];
-            
-            sentimentChart = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: COINS,
-                    datasets: [{
-                        label: 'Sentiment Score',
-                        data: currentSentiments,
-                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                        borderColor: 'rgb(59, 130, 246)',
-                        borderWidth: 2,
-                        pointBackgroundColor: 'rgb(59, 130, 246)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgb(59, 130, 246)'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: { color: 'white' }
-                        }
-                    },
-                    scales: {
-                        r: {
-                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                            pointLabels: { color: 'white' },
-                            ticks: { 
-                                color: 'white',
-                                backdropColor: 'transparent'
-                            },
-                            min: 0,
-                            max: 100
-                        }
-                    }
-                }
-            });
-        }
-
-        // Refresh single coin data with smart fallback
-        async function refreshCoin(coin, showLoading = true) {
-            const prefix = coin.toLowerCase();
-            const refreshIcon = document.getElementById(`${prefix}-refresh-icon`);
-            
-            if (showLoading) {
-                refreshIcon.classList.add('fa-spin');
+    return {
+        coin: coin,
+        price: (data.price * (0.95 + Math.random() * 0.1)).toFixed(coin === 'MOG' ? 8 : 4),
+        sentiment: (data.sentiment + (Math.random() - 0.5) * 10).toFixed(1),
+        socialVolume: Math.floor(data.volume * (0.8 + Math.random() * 0.4)),
+        change24h: (data.change + (Math.random() - 0.5) * 5).toFixed(2),
+        topPosts: [
+            {
+                title: `${coin} community shows strong engagement in latest social metrics`,
+                source: 'Twitter/X',
+                time: `${Math.floor(Math.random() * 6) + 1} hours ago`,
+                url: '#',
+                engagement: Math.floor(Math.random() * 1000 + 200),
+                sentiment: Math.random() > 0.6 ? 'bullish' : Math.random() > 0.3 ? 'neutral' : 'bearish'
+            },
+            {
+                title: `${coin} trending discussions highlight market momentum`,
+                source: 'Reddit',
+                time: `${Math.floor(Math.random() * 12) + 1} hours ago`,
+                url: '#',
+                engagement: Math.floor(Math.random() * 500 + 100),
+                sentiment: Math.random() > 0.5 ? 'bullish' : 'neutral'
             }
-            
-            try {
-                // Call Netlify function with smart fallback system
-                const response = await fetch('/.netlify/functions/crypto-data', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ coin: coin })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                updateCoinDisplay(coin, data);
-                updateChart();
-                
-            } catch (error) {
-                console.error(`Error fetching data for ${coin}:`, error);
-                // Use fallback data on error
-                const fallbackData = generateFallbackData(coin);
-                updateCoinDisplay(coin, fallbackData);
-            } finally {
-                refreshIcon.classList.remove('fa-spin');
-            }
-        }
+        ]
+    };
+}
 
-        // Generate fallback data if API fails
-        function generateFallbackData(coin) {
-            const prices = {
-                'SPX6900': (1.61 + (Math.random() - 0.5) * 0.1).toFixed(4),
-                'DOGE': (0.199 + (Math.random() - 0.5) * 0.01).toFixed(3),
-                'MOG': (0.00000118 + (Math.random() - 0.5) * 0.0000001).toFixed(8),
-                'GIGA': (0.01592 + (Math.random() - 0.5) * 0.001).toFixed(5),
-                'PENGU': (0.03404 + (Math.random() - 0.5) * 0.003).toFixed(5),
-                'PUMP': (0.000156 + (Math.random() - 0.5) * 0.00001).toFixed(6)
-            };
-            
-            return {
-                price: prices[coin] || '0.001',
-                sentiment: (Math.random() * 30 + 60).toFixed(1), // 60-90% range
-                socialVolume: Math.floor(Math.random() * 8000 + 2000),
-                change24h: ((Math.random() - 0.3) * 15).toFixed(2), // Slightly positive bias
-                news: [{
-                    title: `${coin} community shows continued engagement`,
-                    source: 'Crypto Intelligence',
-                    time: Math.floor(Math.random() * 6 + 1) + ' hours ago',
-                    url: '#'
-                }]
-            };
-        }
-
-        // Update coin display with new data
-        function updateCoinDisplay(coin, data) {
-            const prefix = coin.toLowerCase();
-            
-            // Update price
-            const price = parseFloat(data.price);
-            document.getElementById(`${prefix}-price`).textContent = `$${price < 0.001 ? price.toFixed(8) : price.toFixed(price < 1 ? 5 : 2)}`;
-            
-            // Update change with color
-            const changeElement = document.getElementById(`${prefix}-change`);
-            const change = parseFloat(data.change24h);
-            changeElement.textContent = `${change >= 0 ? '+' : ''}${change}%`;
-            changeElement.className = change >= 0 ? 'text-sm text-green-400' : 'text-sm text-red-400';
-            
-            // Update sentiment
-            document.getElementById(`${prefix}-sentiment`).textContent = `${data.sentiment}%`;
-            
-            // Update social volume
-            document.getElementById(`${prefix}-volume`).textContent = data.socialVolume.toLocaleString();
-            const volumeBar = document.getElementById(`${prefix}-volume-bar`);
-            const volumePercent = Math.min((data.socialVolume / 15000) * 100, 100);
-            volumeBar.style.width = `${volumePercent}%`;
-            
-            // Update news
-            const newsContainer = document.getElementById(`${prefix}-news`);
-            if (data.news && data.news.length > 0) {
-                newsContainer.innerHTML = data.news.map(article => `
-                    <div class="border-l-2 border-blue-500 pl-3 py-1">
-                        <a href="${article.url}" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm">
-                            ${article.title}
-                        </a>
-                        <p class="text-xs text-gray-500">${article.source} • ${article.time}</p>
-                    </div>
-                `).join('');
-            }
-        }
-
-        // Refresh all coins
-        async function refreshAllCoins() {
-            document.getElementById('loadingOverlay').classList.remove('hidden');
-            
-            const promises = COINS.map(coin => refreshCoin(coin, false));
-            await Promise.all(promises);
-            
-            document.getElementById('loadingOverlay').classList.add('hidden');
-        }
-
-        // Update radar chart with current sentiment data
-        function updateChart() {
-            const sentimentData = COINS.map(coin => {
-                const prefix = coin.toLowerCase();
-                const sentimentText = document.getElementById(`${prefix}-sentiment`).textContent;
-                return parseFloat(sentimentText.replace('%', ''));
-            });
-            
-            sentimentChart.data.datasets[0].data = sentimentData;
-            sentimentChart.update();
-        }
-
-        // AI Chat Functions
-        function openAIChat() {
-            document.getElementById('aiChatModal').classList.remove('hidden');
-        }
-
-        function closeAIChat() {
-            document.getElementById('aiChatModal').classList.add('hidden');
-        }
-
-        async function sendChatMessage() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-            
-            if (!message) return;
-            
-            const chatMessages = document.getElementById('chatMessages');
-            
-            // Add user message
-            chatMessages.innerHTML += `
-                <div class="mb-3">
-                    <div class="text-blue-400 text-sm">You:</div>
-                    <div class="text-white">${message}</div>
-                </div>
-            `;
-            
-            input.value = '';
-            
-            // Add loading indicator
-            chatMessages.innerHTML += `
-                <div class="mb-3" id="aiResponse">
-                    <div class="text-purple-400 text-sm">Claude:</div>
-                    <div class="text-gray-300"><div class="loading-spinner"></div>Analyzing your coins...</div>
-                </div>
-            `;
-            
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            
-            try {
-                // Get current coin data for context
-                const coinData = COINS.map(coin => {
-                    const prefix = coin.toLowerCase();
-                    return {
-                        coin: coin,
-                        price: document.getElementById(`${prefix}-price`).textContent,
-                        sentiment: document.getElementById(`${prefix}-sentiment`).textContent,
-                        change: document.getElementById(`${prefix}-change`).textContent
-                    };
-                });
-                
-                // Simulate AI response based on current data
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                
-                let response = generateAIResponse(message, coinData);
-                
-                document.getElementById('aiResponse').innerHTML = `
-                    <div class="text-purple-400 text-sm">Claude:</div>
-                    <div class="text-white">${response}</div>
-                `;
-                
-            } catch (error) {
-                document.getElementById('aiResponse').innerHTML = `
-                    <div class="text-purple-400 text-sm">Claude:</div>
-                    <div class="text-red-400">I'm having trouble accessing the latest data right now. Please try refreshing the coins first.</div>
-                `;
-            }
-            
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        // Generate AI-like responses based on current data
-        function generateAIResponse(question, coinData) {
-            const q = question.toLowerCase();
-            
-            if (q.includes('best') || q.includes('performer')) {
-                const best = coinData.reduce((prev, current) => {
-                    const prevChange = parseFloat(prev.change.replace('%', '').replace('+', ''));
-                    const currentChange = parseFloat(current.change.replace('%', '').replace('+', ''));
-                    return currentChange > prevChange ? current : prev;
-                });
-                return `Based on today's data, **${best.coin}** is your best performer with ${best.change} gains. The sentiment is strong at ${best.sentiment}, suggesting continued positive momentum.`;
-            }
-            
-            if (q.includes('sentiment') && (q.includes('compare') || q.includes('vs'))) {
-                const sorted = coinData.sort((a, b) => parseFloat(b.sentiment) - parseFloat(a.sentiment));
-                return `Sentiment comparison: **${sorted[0].coin}** leads with ${sorted[0].sentiment} sentiment, followed by **${sorted[1].coin}** at ${sorted[1].sentiment}. ${sorted[0].coin} shows the strongest community confidence right now.`;
-            }
-            
-            if (q.includes('social') || q.includes('buzz')) {
-                return `Looking at social volume, **DOGE** typically dominates with its large community, while **SPX6900** and **GIGA** are showing strong emerging social activity. The meme coin sector is quite active today.`;
-            }
-            
-            if (q.includes('spx') || q.includes('6900')) {
-                const spx = coinData.find(c => c.coin === 'SPX6900');
-                return `**SPX6900** is trading at ${spx.price} with ${spx.change} movement and ${spx.sentiment} sentiment. It's positioned as a memecoin leader and worth monitoring for continued momentum.`;
-            }
-            
-            // Default response
-            return `I can see your portfolio spans established coins like **DOGE** alongside emerging memecoins like **SPX6900**, **GIGA**, and **MOG**. The overall sentiment across your selection looks positive, with most coins showing green momentum. Consider the social volume trends when making decisions.`;
-        }
-
-        // Auto-refresh every 10 minutes to prevent stale data
-        setInterval(() => {
-            if (!document.getElementById('loadingOverlay').classList.contains('hidden')) return;
-            refreshAllCoins();
-        }, 10 * 60 * 1000);
-    </script>
-</body>
-</html>
 
