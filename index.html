@@ -38,20 +38,11 @@
             border-radius: 4px;
             font-weight: 600;
         }
-        .source-mcp { background: #10b981; color: white; }
         .source-claude { background: #8b5cf6; color: white; }
-        .source-mock { background: #f59e0b; color: white; }
-        .pulse-animation {
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
+        .source-demo { background: #f59e0b; color: white; }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
-
     <!-- Header -->
     <nav class="gradient-bg shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -64,9 +55,6 @@
                 <div class="flex items-center space-x-4">
                     <button id="refreshAll" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">
                         <i class="fas fa-sync-alt mr-2"></i>Refresh All
-                    </button>
-                    <button id="aiChatBtn" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors">
-                        <i class="fas fa-robot mr-2"></i>Ask Claude
                     </button>
                 </div>
             </div>
@@ -97,7 +85,7 @@
                         </div>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <span id="spx-source" class="data-source-badge source-mock">DEMO</span>
+                        <span id="spx-source" class="data-source-badge source-demo">DEMO</span>
                         <button onclick="refreshCoin('SPX6900')" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm transition-colors">
                             <i class="fas fa-sync-alt"></i>
                         </button>
@@ -134,156 +122,6 @@
                 </div>
             </div>
 
-            <!-- GIGA -->
-            <div class="bg-gray-800 rounded-lg p-6 card-hover" id="giga-card">
-                <div class="flex justify-between items-center mb-4">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center mr-3">
-                            <span class="font-bold text-white text-sm">G</span>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-bold">GIGA</h3>
-                            <p class="text-gray-400 text-sm">GIGA</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <span id="giga-source" class="data-source-badge source-mock">DEMO</span>
-                        <button onclick="refreshCoin('GIGA')" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm transition-colors">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <p class="text-gray-400 text-xs">Price</p>
-                        <p class="text-xl font-bold text-green-400" id="giga-price">$0.01592</p>
-                        <p class="text-sm text-green-400" id="giga-change">+8.82%</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-400 text-xs">Sentiment</p>
-                        <p class="text-xl font-bold text-blue-400" id="giga-sentiment">72.3%</p>
-                        <p class="text-sm text-gray-400">Social Score</p>
-                    </div>
-                </div>
-                
-                <div class="mb-4">
-                    <p class="text-gray-400 text-xs mb-2">Social Volume: <span id="giga-volume" class="text-white">18,453</span></p>
-                    <div class="bg-gray-700 rounded-full h-2">
-                        <div class="bg-purple-500 h-2 rounded-full transition-all duration-500" id="giga-volume-bar" style="width: 45%"></div>
-                    </div>
-                </div>
-                
-                <div id="giga-news" class="space-y-2">
-                    <div class="border-l-2 border-blue-500 pl-3 py-1">
-                        <a href="#" class="text-blue-400 hover:text-blue-300 text-sm">
-                            GIGA community shows strong engagement metrics
-                        </a>
-                        <p class="text-xs text-gray-500">Demo Data • 4 hours ago</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MOG -->
-            <div class="bg-gray-800 rounded-lg p-6 card-hover" id="mog-card">
-                <div class="flex justify-between items-center mb-4">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 bg-gradient-to-r from-pink-400 to-red-500 rounded-full flex items-center justify-center mr-3">
-                            <span class="font-bold text-white text-sm">M</span>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-bold">MOG</h3>
-                            <p class="text-gray-400 text-sm">MOG</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <span id="mog-source" class="data-source-badge source-mock">DEMO</span>
-                        <button onclick="refreshCoin('MOG')" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm transition-colors">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <p class="text-gray-400 text-xs">Price</p>
-                        <p class="text-xl font-bold text-green-400" id="mog-price">$0.00000118</p>
-                        <p class="text-sm text-green-400" id="mog-change">+6.28%</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-400 text-xs">Sentiment</p>
-                        <p class="text-xl font-bold text-blue-400" id="mog-sentiment">84.1%</p>
-                        <p class="text-sm text-gray-400">Social Score</p>
-                    </div>
-                </div>
-                
-                <div class="mb-4">
-                    <p class="text-gray-400 text-xs mb-2">Social Volume: <span id="mog-volume" class="text-white">32,156</span></p>
-                    <div class="bg-gray-700 rounded-full h-2">
-                        <div class="bg-purple-500 h-2 rounded-full transition-all duration-500" id="mog-volume-bar" style="width: 80%"></div>
-                    </div>
-                </div>
-                
-                <div id="mog-news" class="space-y-2">
-                    <div class="border-l-2 border-blue-500 pl-3 py-1">
-                        <a href="#" class="text-blue-400 hover:text-blue-300 text-sm">
-                            MOG gains traction on TikTok with viral content
-                        </a>
-                        <p class="text-xs text-gray-500">Demo Data • 1 hour ago</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PUMP -->
-            <div class="bg-gray-800 rounded-lg p-6 card-hover" id="pump-card">
-                <div class="flex justify-between items-center mb-4">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full flex items-center justify-center mr-3">
-                            <span class="font-bold text-white text-sm">P</span>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-bold">PUMP</h3>
-                            <p class="text-gray-400 text-sm">PUMP</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <span id="pump-source" class="data-source-badge source-mock">DEMO</span>
-                        <button onclick="refreshCoin('PUMP')" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm transition-colors">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <p class="text-gray-400 text-xs">Price</p>
-                        <p class="text-xl font-bold text-green-400" id="pump-price">$0.0542</p>
-                        <p class="text-sm text-green-400" id="pump-change">+12.45%</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-400 text-xs">Sentiment</p>
-                        <p class="text-xl font-bold text-blue-400" id="pump-sentiment">68.7%</p>
-                        <p class="text-sm text-gray-400">Social Score</p>
-                    </div>
-                </div>
-                
-                <div class="mb-4">
-                    <p class="text-gray-400 text-xs mb-2">Social Volume: <span id="pump-volume" class="text-white">15,234</span></p>
-                    <div class="bg-gray-700 rounded-full h-2">
-                        <div class="bg-purple-500 h-2 rounded-full transition-all duration-500" id="pump-volume-bar" style="width: 38%"></div>
-                    </div>
-                </div>
-                
-                <div id="pump-news" class="space-y-2">
-                    <div class="border-l-2 border-blue-500 pl-3 py-1">
-                        <a href="#" class="text-blue-400 hover:text-blue-300 text-sm">
-                            PUMP token sees increased trading activity
-                        </a>
-                        <p class="text-xs text-gray-500">Demo Data • 3 hours ago</p>
-                    </div>
-                </div>
-            </div>
-
             <!-- DOGE -->
             <div class="bg-gray-800 rounded-lg p-6 card-hover" id="doge-card">
                 <div class="flex justify-between items-center mb-4">
@@ -297,7 +135,7 @@
                         </div>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <span id="doge-source" class="data-source-badge source-mock">DEMO</span>
+                        <span id="doge-source" class="data-source-badge source-demo">DEMO</span>
                         <button onclick="refreshCoin('DOGE')" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm transition-colors">
                             <i class="fas fa-sync-alt"></i>
                         </button>
@@ -334,6 +172,56 @@
                 </div>
             </div>
 
+            <!-- MOG -->
+            <div class="bg-gray-800 rounded-lg p-6 card-hover" id="mog-card">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-r from-pink-400 to-red-500 rounded-full flex items-center justify-center mr-3">
+                            <span class="font-bold text-white text-sm">M</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold">MOG</h3>
+                            <p class="text-gray-400 text-sm">MOG</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span id="mog-source" class="data-source-badge source-demo">DEMO</span>
+                        <button onclick="refreshCoin('MOG')" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm transition-colors">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <p class="text-gray-400 text-xs">Price</p>
+                        <p class="text-xl font-bold text-green-400" id="mog-price">$0.00000118</p>
+                        <p class="text-sm text-green-400" id="mog-change">+6.28%</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-xs">Sentiment</p>
+                        <p class="text-xl font-bold text-blue-400" id="mog-sentiment">84.1%</p>
+                        <p class="text-sm text-gray-400">Social Score</p>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <p class="text-gray-400 text-xs mb-2">Social Volume: <span id="mog-volume" class="text-white">32,156</span></p>
+                    <div class="bg-gray-700 rounded-full h-2">
+                        <div class="bg-purple-500 h-2 rounded-full transition-all duration-500" id="mog-volume-bar" style="width: 80%"></div>
+                    </div>
+                </div>
+                
+                <div id="mog-news" class="space-y-2">
+                    <div class="border-l-2 border-blue-500 pl-3 py-1">
+                        <a href="#" class="text-blue-400 hover:text-blue-300 text-sm">
+                            MOG gains traction on TikTok with viral content
+                        </a>
+                        <p class="text-xs text-gray-500">Demo Data • 1 hour ago</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- PENGU -->
             <div class="bg-gray-800 rounded-lg p-6 card-hover" id="pengu-card">
                 <div class="flex justify-between items-center mb-4">
@@ -347,7 +235,7 @@
                         </div>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <span id="pengu-source" class="data-source-badge source-mock">DEMO</span>
+                        <span id="pengu-source" class="data-source-badge source-demo">DEMO</span>
                         <button onclick="refreshCoin('PENGU')" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm transition-colors">
                             <i class="fas fa-sync-alt"></i>
                         </button>
@@ -394,67 +282,23 @@
         </div>
     </div>
 
-    <!-- AI Chat Modal -->
-    <div id="aiChatModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-gray-800 rounded-lg p-6 w-full max-w-2xl">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-bold">Ask Claude About Crypto</h3>
-                    <button onclick="closeAIChat()" class="text-gray-400 hover:text-white">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                
-                <div id="chatMessages" class="bg-gray-900 rounded-lg p-4 h-64 overflow-y-auto mb-4">
-                    <p class="text-gray-400">Hi! I can analyze crypto sentiment and provide market intelligence. Try asking:</p>
-                    <ul class="text-sm text-blue-400 mt-2">
-                        <li>• "What's driving SPX6900 sentiment?"</li>
-                        <li>• "Compare MOG vs GIGA social volume"</li>
-                        <li>• "Which coin has the most buzz today?"</li>
-                    </ul>
-                </div>
-                
-                <div class="flex">
-                    <input type="text" id="chatInput" placeholder="Ask about crypto sentiment..." 
-                           class="flex-1 bg-gray-700 text-white px-4 py-2 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <button onclick="sendChatMessage()" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-r-lg transition-colors">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden z-40">
         <div class="bg-gray-800 rounded-lg p-8 text-center">
             <div class="loading-spinner"></div>
             <p class="text-white">Fetching crypto intelligence...</p>
-            <p class="text-gray-400 text-sm mt-2" id="loadingStatus">Trying Claude Analysis → Fallback Data</p>
         </div>
     </div>
 
     <script>
-        // Configuration
-        const COINS = ['SPX6900', 'GIGA', 'MOG', 'PUMP', 'DOGE', 'PENGU'];
+        const COINS = ['SPX6900', 'DOGE', 'MOG', 'PENGU'];
         let sentimentChart = null;
 
-        // Initialize Dashboard
         document.addEventListener('DOMContentLoaded', function() {
             initializeChart();
-            
-            // Set up event listeners
             document.getElementById('refreshAll').addEventListener('click', refreshAllCoins);
-            document.getElementById('aiChatBtn').addEventListener('click', openAIChat);
-            document.getElementById('chatInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') sendChatMessage();
-            });
-
-            // Auto-refresh every 10 minutes
-            setInterval(refreshAllCoins, 10 * 60 * 1000);
         });
 
-        // Initialize Chart
         function initializeChart() {
             const ctx = document.getElementById('sentimentChart').getContext('2d');
             sentimentChart = new Chart(ctx, {
@@ -463,7 +307,7 @@
                     labels: COINS,
                     datasets: [{
                         label: 'Sentiment Score',
-                        data: [78.5, 72.3, 84.1, 68.7, 76.2, 81.3],
+                        data: [78.5, 76.2, 84.1, 81.3],
                         backgroundColor: 'rgba(59, 130, 246, 0.2)',
                         borderColor: 'rgb(59, 130, 246)',
                         borderWidth: 2,
@@ -477,63 +321,40 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            labels: { color: 'white' }
-                        }
+                        legend: { labels: { color: 'white' } }
                     },
                     scales: {
                         r: {
                             angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
                             grid: { color: 'rgba(255, 255, 255, 0.1)' },
                             pointLabels: { color: 'white' },
-                            ticks: { 
-                                color: 'white',
-                                backdropColor: 'transparent'
-                            },
-                            min: 0,
-                            max: 100
+                            ticks: { color: 'white', backdropColor: 'transparent' },
+                            min: 0, max: 100
                         }
                     }
                 }
             });
         }
 
-        // Update status bar
         function updateStatus(message, isError = false) {
             const statusText = document.getElementById('statusText');
             const lastUpdate = document.getElementById('lastUpdate');
-            
             statusText.textContent = message;
             statusText.className = isError ? 'text-sm text-red-400' : 'text-sm text-green-400';
             lastUpdate.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
         }
 
-        // Refresh single coin data
         async function refreshCoin(coin) {
             showLoadingState(coin);
-            
             try {
                 updateStatus(`Fetching ${coin} data...`);
-                
-                // Try POST first (for the updated function)
-                let response = await fetch('/.netlify/functions/crypto-data', {
+                const response = await fetch('/.netlify/functions/crypto-data', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ coin: coin })
                 });
                 
-                // If POST fails, try GET as fallback
-                if (!response.ok) {
-                    response = await fetch(`/.netlify/functions/crypto-data?coin=${coin}`, {
-                        method: 'GET'
-                    });
-                }
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 
                 const data = await response.json();
                 updateCoinDisplay(coin, data);
@@ -541,24 +362,115 @@
                 updateStatus(`${coin} updated successfully`);
                 
             } catch (error) {
-                console.error(`Error fetching data for ${coin}:`, error);
-                showErrorState(coin, error.message);
-                updateStatus(`Error updating ${coin}: ${error.message}`, true);
+                console.error(`Error fetching ${coin}:`, error);
+                showErrorState(coin);
+                updateStatus(`Error updating ${coin}`, true);
             }
         }
 
-        // Update coin display with new data
         function updateCoinDisplay(coin, data) {
             const prefix = coin.toLowerCase();
             
-            // Update data source badge
+            // Update source badge
             const sourceElement = document.getElementById(`${prefix}-source`);
             if (sourceElement) {
-                sourceElement.textContent = getSourceLabel(data.dataSource);
-                sourceElement.className = 'data-source-badge ' + getSourceClass(data.dataSource);
+                sourceElement.textContent = data.dataSource?.includes('Claude') ? 'CLAUDE' : 'DEMO';
+                sourceElement.className = 'data-source-badge ' + (data.dataSource?.includes('Claude') ? 'source-claude' : 'source-demo');
             }
             
             // Update price
             const priceElement = document.getElementById(`${prefix}-price`);
-            if (priceElement) {
-                price
+            if (priceElement) priceElement.textContent = `$${data.price}`;
+            
+            // Update change with color
+            const changeElement = document.getElementById(`${prefix}-change`);
+            if (changeElement) {
+                const change = parseFloat(data.change24h);
+                changeElement.textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
+                changeElement.className = change >= 0 ? 'text-sm text-green-400' : 'text-sm text-red-400';
+            }
+            
+            // Update sentiment
+            const sentimentElement = document.getElementById(`${prefix}-sentiment`);
+            if (sentimentElement) sentimentElement.textContent = `${parseFloat(data.sentiment).toFixed(1)}%`;
+            
+            // Update volume
+            const volumeElement = document.getElementById(`${prefix}-volume`);
+            if (volumeElement) volumeElement.textContent = parseInt(data.socialVolume).toLocaleString();
+            
+            const volumeBar = document.getElementById(`${prefix}-volume-bar`);
+            if (volumeBar) {
+                const volumePercent = Math.min((parseInt(data.socialVolume) / 100000) * 100, 100);
+                volumeBar.style.width = `${volumePercent}%`;
+            }
+            
+            // Update news
+            const newsContainer = document.getElementById(`${prefix}-news`);
+            if (newsContainer && data.topPosts && data.topPosts.length > 0) {
+                newsContainer.innerHTML = data.topPosts.map(post => `
+                    <div class="border-l-2 border-blue-500 pl-3 py-1">
+                        <a href="#" class="text-blue-400 hover:text-blue-300 text-sm">${post.title}</a>
+                        <p class="text-xs text-gray-500">${post.source} • ${post.time}</p>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function showLoadingState(coin) {
+            const prefix = coin.toLowerCase();
+            const priceElement = document.getElementById(`${prefix}-price`);
+            const sentimentElement = document.getElementById(`${prefix}-sentiment`);
+            
+            if (priceElement) priceElement.innerHTML = '<div class="loading-spinner"></div>Loading...';
+            if (sentimentElement) sentimentElement.innerHTML = '<div class="loading-spinner"></div>Loading...';
+        }
+
+        function showErrorState(coin) {
+            const prefix = coin.toLowerCase();
+            const priceElement = document.getElementById(`${prefix}-price`);
+            const sentimentElement = document.getElementById(`${prefix}-sentiment`);
+            
+            if (priceElement) priceElement.innerHTML = '<span class="text-red-400">Error</span>';
+            if (sentimentElement) sentimentElement.innerHTML = '<span class="text-red-400">Error</span>';
+        }
+
+        async function refreshAllCoins() {
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            updateStatus('Refreshing all coins...');
+            
+            try {
+                const promises = COINS.map(async (coin, index) => {
+                    await new Promise(resolve => setTimeout(resolve, index * 500));
+                    return refreshCoin(coin);
+                });
+                
+                await Promise.all(promises);
+                updateStatus('All coins refreshed successfully');
+                
+            } catch (error) {
+                updateStatus('Some coins failed to refresh', true);
+            } finally {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+            }
+        }
+
+        function updateChart() {
+            const sentimentData = COINS.map(coin => {
+                const prefix = coin.toLowerCase();
+                const sentimentElement = document.getElementById(`${prefix}-sentiment`);
+                if (!sentimentElement) return 0;
+                
+                const sentimentText = sentimentElement.textContent;
+                if (sentimentText.includes('Error') || sentimentText.includes('Loading')) return 0;
+                
+                return parseFloat(sentimentText.replace('%', '')) || 0;
+            });
+            
+            if (sentimentChart) {
+                sentimentChart.data.datasets[0].data = sentimentData;
+                sentimentChart.update('none');
+            }
+        }
+    </script>
+</body>
+</html>
